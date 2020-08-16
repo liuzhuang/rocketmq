@@ -33,12 +33,27 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+/**
+ * 文件变更监听器
+ */
 public class FileWatchService extends ServiceThread {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.COMMON_LOGGER_NAME);
 
+    /**
+     * 文件路径列表
+     */
     private final List<String> watchFiles;
+
+    /**
+     * 文件hash值
+     */
     private final List<String> fileCurrentHash;
+
     private final Listener listener;
+
+    /**
+     * 扫描周期，500毫秒
+     */
     private static final int WATCH_INTERVAL = 500;
     private MessageDigest md = MessageDigest.getInstance("MD5");
 

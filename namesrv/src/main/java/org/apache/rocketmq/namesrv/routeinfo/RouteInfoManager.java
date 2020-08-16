@@ -45,14 +45,38 @@ import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 import org.apache.rocketmq.common.sysflag.TopicSysFlag;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+/**
+ * 路由数据(核心就是这些数据)
+ */
 public class RouteInfoManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
     private final static long BROKER_CHANNEL_EXPIRED_TIME = 1000 * 60 * 2;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+
+    /**
+     * Topic消息队列路由列表，消息发送时根据路由表进行负载均衡。（ 一个Topic有多个消息队列，一个Broker默认创建4个读队列4个写队列。）
+     */
     private final HashMap<String/* topic */, List<QueueData>> topicQueueTable;
+
+    /**
+     * Broker基础信息。包括brokerName、集群名称、准备broker地址.
+     */
     private final HashMap<String/* brokerName */, BrokerData> brokerAddrTable;
+
+    /**
+     * Broker集群信息，存储集群中所有Broker名称
+     */
     private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;
+
+    /**
+     * Broker状态信息，记录broker心跳数据。只保留最近一次
+     */
     private final HashMap<String/* brokerAddr */, BrokerLiveInfo> brokerLiveTable;
+
+    /**
+     * Broker上的FilterServer列表，用于类模式消息过滤。
+     */
     private final HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
 
     public RouteInfoManager() {
@@ -288,6 +312,9 @@ public class RouteInfoManager {
         return wipeTopicCnt;
     }
 
+    /**
+     * 路由删除（正常移除Broker）
+     */
     public void unregisterBroker(
         final String clusterName,
         final String brokerAddr,
@@ -426,21 +453,33 @@ public class RouteInfoManager {
         return null;
     }
 
+    /**
+     * 移除不活跃的Broker。扫描brokerLiveTable检测上次心跳时间与当前系统时间差，如果时间大于120秒，则移除Broker。
+     */
     public void scanNotActiveBroker() {
         Iterator<Entry<String, BrokerLiveInfo>> it = this.brokerLiveTable.entrySet().iterator();
         while (it.hasNext()) {
             Entry<String, BrokerLiveInfo> next = it.next();
             long last = next.getValue().getLastUpdateTimestamp();
             if ((last + BROKER_CHANNEL_EXPIRED_TIME) < System.currentTimeMillis()) {
+
+                // 关闭Netty连接
                 RemotingUtil.closeChannel(next.getValue().getChannel());
                 it.remove();
+
+                // 移除Broker
                 log.warn("The broker channel expired, {} {}ms", next.getKey(), BROKER_CHANNEL_EXPIRED_TIME);
                 this.onChannelDestroy(next.getKey(), next.getValue().getChannel());
             }
         }
     }
 
+    /**
+     * 路由删除（移除Broker，其实就是删除一些元数据）
+     */
     public void onChannelDestroy(String remoteAddr, Channel channel) {
+
+        // 根据channel查找broker地址。brokerLiveTable中记录channel心跳包
         String brokerAddrFound = null;
         if (channel != null) {
             try {
@@ -752,9 +791,20 @@ public class RouteInfoManager {
     }
 }
 
+/**
+ * 心跳包数据
+ */
 class BrokerLiveInfo {
     private long lastUpdateTimestamp;
+
+    /**
+     * 版本号
+     */
     private DataVersion dataVersion;
+
+    /**
+     * Netty连接
+     */
     private Channel channel;
     private String haServerAddr;
 

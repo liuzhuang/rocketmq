@@ -48,9 +48,20 @@ public class NamesrvController {
 
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
         "NSScheduledThread"));
+
+    /**
+     * KV配置属性
+     */
     private final KVConfigManager kvConfigManager;
+
+    /**
+     * 路由核心数据
+     */
     private final RouteInfoManager routeInfoManager;
 
+    /**
+     * 远程调用
+     */
     private RemotingServer remotingServer;
 
     private BrokerHousekeepingService brokerHousekeepingService;
@@ -58,6 +69,7 @@ public class NamesrvController {
     private ExecutorService remotingExecutor;
 
     private Configuration configuration;
+
     private FileWatchService fileWatchService;
 
     public NamesrvController(NamesrvConfig namesrvConfig, NettyServerConfig nettyServerConfig) {
@@ -73,17 +85,25 @@ public class NamesrvController {
         this.configuration.setStorePathFromConfig(this.namesrvConfig, "configStorePath");
     }
 
+    /**
+     * 初始化
+     */
     public boolean initialize() {
 
+        // 加载KV配置
         this.kvConfigManager.load();
 
+        // 远程调用服务
         this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
 
+        // 远程调用线程池
         this.remotingExecutor =
             Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
 
+        // 远程调用处理器
         this.registerProcessor();
 
+        // 每隔10秒扫描不活跃的Broker
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -92,6 +112,7 @@ public class NamesrvController {
             }
         }, 5, 10, TimeUnit.SECONDS);
 
+        // 每隔10秒打印KV配置
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 
             @Override
@@ -100,6 +121,7 @@ public class NamesrvController {
             }
         }, 1, 10, TimeUnit.MINUTES);
 
+        // 如果开启了SSL，就注册文件变更监听器，如果文件发生更改就重新加载sslContext。
         if (TlsSystemConfig.tlsMode != TlsMode.DISABLED) {
             // Register a listener to reload SslContext
             try {
@@ -141,6 +163,10 @@ public class NamesrvController {
         return true;
     }
 
+    /**
+     * 注册Netty响应处理Processor，DefaultRequestProcessor。
+     * 消息处理器
+     */
     private void registerProcessor() {
         if (namesrvConfig.isClusterTest()) {
 
@@ -152,6 +178,10 @@ public class NamesrvController {
         }
     }
 
+    /**
+     * 启动
+     *      启动nettyServer
+     */
     public void start() throws Exception {
         this.remotingServer.start();
 
@@ -160,6 +190,9 @@ public class NamesrvController {
         }
     }
 
+    /**
+     * 关闭回调
+     */
     public void shutdown() {
         this.remotingServer.shutdown();
         this.remotingExecutor.shutdown();

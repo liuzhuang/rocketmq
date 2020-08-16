@@ -26,14 +26,33 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 
+/**
+ * 基础配置
+ */
 public class NamesrvConfig {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
+    /**
+     * RocketMQ主目录。两种设置方式 1.-Drocketmq.home.dir 2.环境变量ROCKETMQ_HOME
+     */
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
+
+    /**
+     * 存储KV配置文件的持久化路径
+     */
     private String kvConfigPath = System.getProperty("user.home") + File.separator + "namesrv" + File.separator + "kvConfig.json";
+
+    /**
+     * 默认配置文件
+     *  覆盖使用-c选项
+     */
     private String configStorePath = System.getProperty("user.home") + File.separator + "namesrv" + File.separator + "namesrv.properties";
     private String productEnvName = "center";
     private boolean clusterTest = false;
+
+    /**
+     * 是否支持顺序消息
+     */
     private boolean orderMessageEnable = false;
 
     public boolean isOrderMessageEnable() {
@@ -82,5 +101,17 @@ public class NamesrvConfig {
 
     public void setConfigStorePath(final String configStorePath) {
         this.configStorePath = configStorePath;
+    }
+
+    @Override
+    public String toString() {
+        return "\nNamesrvConfig{" +
+                "\nrocketmqHome='" + rocketmqHome + '\'' +
+                "\n, kvConfigPath='" + kvConfigPath + '\'' +
+                "\n, configStorePath='" + configStorePath + '\'' +
+                "\n, productEnvName='" + productEnvName + '\'' +
+                "\n, clusterTest=" + clusterTest +
+                "\n, orderMessageEnable=" + orderMessageEnable +
+                '}';
     }
 }

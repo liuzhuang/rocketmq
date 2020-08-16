@@ -48,6 +48,30 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.apache.rocketmq.remoting.netty.TlsSystemConfig.TLS_ENABLE;
 
+
+/**
+ * Broker 启动类
+ *      1. 设置ROCKETMQ_HOME环境变量
+ *          ROCKETMQ_HOME=/Users/liuzhuang/project/liuzhuang/rq/rocketmq/settings/
+ *
+ *      2. 启动命令
+ *          -c、configFile、 Broker config properties file、设置配置文件
+ *          -p、 printConfigItem、 Print all config item、打印配置文件
+ *          -m、printImportantConfig、Print important config item、打印重要的配置文件
+ *
+ *      3. 配置
+// *          NamesrvConfig
+// *              基础配置
+// *          NettyServerConfig
+// *              网络配置
+ *
+ *       4. 复制配置文件
+ *              distribution/conf/logback_broker.xml -> settings/conf
+ *
+ *       5. 启动BrokerStartup
+ *              The broker[liuzhuangzhuang.local, 192.168.199.206:10911] boot success. serializeType=JSON
+ *
+ */
 public class BrokerStartup {
     public static Properties properties = null;
     public static CommandLine commandLine = null;

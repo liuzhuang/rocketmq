@@ -41,6 +41,29 @@ import org.apache.rocketmq.srvutil.ServerUtil;
 import org.apache.rocketmq.srvutil.ShutdownHookThread;
 import org.slf4j.LoggerFactory;
 
+/**
+ * NameServer 启动类
+ *      1. 设置ROCKETMQ_HOME环境变量
+ *          ROCKETMQ_HOME=/Users/liuzhuang/project/liuzhuang/rq/rocketmq/settings/
+ *
+ *      2. 启动命令
+ *          -c、configFile、 Name server config properties file、设置配置文件
+ *          -p、 printConfigItem、 Print all config item、打印配置文件
+ *
+ *      3. 配置
+ *          NamesrvConfig
+ *              基础配置
+ *          NettyServerConfig
+ *              网络配置
+ *
+ *       4. 复制配置文件
+ *              distribution/conf/logback_namesrv.xml -> settings/conf
+ *              distribution/conf/broker.conf -> settings/conf
+ *
+ *       5. 启动NamesrvStartup
+ *              The Name Server boot success. serializeType=JSON
+ *
+ */
 public class NamesrvStartup {
 
     private static InternalLogger log;
@@ -51,6 +74,10 @@ public class NamesrvStartup {
         main0(args);
     }
 
+    /**
+     * createNamesrvController
+     * start
+     */
     public static NamesrvController main0(String[] args) {
 
         try {
@@ -79,9 +106,14 @@ public class NamesrvStartup {
             return null;
         }
 
+        // 基础配置
         final NamesrvConfig namesrvConfig = new NamesrvConfig();
+
+        // 网络配置
         final NettyServerConfig nettyServerConfig = new NettyServerConfig();
         nettyServerConfig.setListenPort(9876);
+
+        // 关联外部配置
         if (commandLine.hasOption('c')) {
             String file = commandLine.getOptionValue('c');
             if (file != null) {
@@ -98,6 +130,7 @@ public class NamesrvStartup {
             }
         }
 
+        // 打印所有配置
         if (commandLine.hasOption('p')) {
             InternalLogger console = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_CONSOLE_NAME);
             MixAll.printObjectProperties(console, namesrvConfig);
@@ -112,6 +145,7 @@ public class NamesrvStartup {
             System.exit(-2);
         }
 
+        // 加载日志框架logback（文件位置为ROCKETMQ_HOME/conf/logback_namesrv.xml）
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         JoranConfigurator configurator = new JoranConfigurator();
         configurator.setContext(lc);
@@ -122,6 +156,8 @@ public class NamesrvStartup {
 
         MixAll.printObjectProperties(log, namesrvConfig);
         MixAll.printObjectProperties(log, nettyServerConfig);
+        System.out.println(namesrvConfig);
+        System.out.println(nettyServerConfig);
 
         final NamesrvController controller = new NamesrvController(namesrvConfig, nettyServerConfig);
 
@@ -131,6 +167,11 @@ public class NamesrvStartup {
         return controller;
     }
 
+    /**
+     * initialize
+     * start
+     * addShutdownHook
+     */
     public static NamesrvController start(final NamesrvController controller) throws Exception {
 
         if (null == controller) {

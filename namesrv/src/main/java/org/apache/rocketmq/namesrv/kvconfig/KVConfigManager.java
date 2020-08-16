@@ -28,12 +28,26 @@ import org.apache.rocketmq.logging.InternalLogger;
 import org.apache.rocketmq.logging.InternalLoggerFactory;
 import org.apache.rocketmq.common.protocol.body.KVTable;
 import org.apache.rocketmq.namesrv.NamesrvController;
+
+/**
+ * KV配置用途
+ *   只找到一个用途
+ *      namespace=NamesrvUtil.NAMESPACE_ORDER_TOPIC_CONFIG(ORDER_TOPIC_CONFIG)
+ *      key=topic
+ */
 public class KVConfigManager {
     private static final InternalLogger log = InternalLoggerFactory.getLogger(LoggerName.NAMESRV_LOGGER_NAME);
 
     private final NamesrvController namesrvController;
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    /**
+     * KV数据
+     *      namespace1:
+     *            key1:value1
+     *            key2:value2
+     */
     private final HashMap<String/* Namespace */, HashMap<String/* Key */, String/* Value */>> configTable =
         new HashMap<String, HashMap<String, String>>();
 
@@ -41,6 +55,9 @@ public class KVConfigManager {
         this.namesrvController = namesrvController;
     }
 
+    /**
+     * 从本地文件加载到内存
+     */
     public void load() {
         String content = null;
         try {
@@ -58,6 +75,9 @@ public class KVConfigManager {
         }
     }
 
+    /**
+     * 添加配置
+     */
     public void putKVConfig(final String namespace, final String key, final String value) {
         try {
             this.lock.writeLock().lockInterruptibly();
@@ -87,6 +107,9 @@ public class KVConfigManager {
         this.persist();
     }
 
+    /**
+     * 将内存数据持久化到本地文件
+     */
     public void persist() {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -111,6 +134,9 @@ public class KVConfigManager {
 
     }
 
+    /**
+     * 删除配置
+     */
     public void deleteKVConfig(final String namespace, final String key) {
         try {
             this.lock.writeLock().lockInterruptibly();
@@ -131,6 +157,9 @@ public class KVConfigManager {
         this.persist();
     }
 
+    /**
+     * 获取一个namespace下所有配置文件
+     */
     public byte[] getKVListByNamespace(final String namespace) {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -151,6 +180,9 @@ public class KVConfigManager {
         return null;
     }
 
+    /**
+     * 获取配置
+     */
     public String getKVConfig(final String namespace, final String key) {
         try {
             this.lock.readLock().lockInterruptibly();
@@ -169,6 +201,9 @@ public class KVConfigManager {
         return null;
     }
 
+    /**
+     * 周期性的打印KV属性
+     */
     public void printAllPeriodically() {
         try {
             this.lock.readLock().lockInterruptibly();
