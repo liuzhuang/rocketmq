@@ -25,10 +25,41 @@ import java.util.Map;
 public class Message implements Serializable {
     private static final long serialVersionUID = 8445773977080406428L;
 
+    /**
+     * 主题TOPIC
+     */
     private String topic;
+
+    /**
+     * MessageSysFlag（RocketMQ不做任何处理）
+     */
     private int flag;
+
+    /**
+     * 扩展属性
+     *     MessageConst
+     *          KEYS：消息TAG,用于消息过滤
+     *
+     *          TAGS：Message索引键，多个用空格隔开，RocketMQ可以根据这些key快速检索到消息。
+     *
+     *          DELAY -> PROPERTY_DELAY_TIME_LEVEL：消息延迟级别，用于定时消息或消息重试
+     *
+     *          WAIT -> PROPERTY_WAIT_STORE_MSG_OK：消息发送时是否等消息存储完成后再返回
+     *
+     *          INSTANCE_ID
+     *
+     *          BUYER_ID
+     */
     private Map<String, String> properties;
+
+    /**
+     * 消息体
+     */
     private byte[] body;
+
+    /**
+     * 1/15/18年 [ISSUE #292] Add support of transactional message feature  (#358) duheng* 7/15/18, 10:51
+     */
     private String transactionId;
 
     public Message() {

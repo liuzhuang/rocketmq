@@ -62,6 +62,9 @@ public class ClientConfig {
 
     private LanguageCode language = LanguageCode.JAVA;
 
+    /**
+     * IP@instanceName@unitName（可选）
+     */
     public String buildMQClientId() {
         StringBuilder sb = new StringBuilder();
         sb.append(this.getClientIP());
@@ -185,6 +188,8 @@ public class ClientConfig {
     }
 
     /**
+     * 设置NameServer地址，多地址以;分隔
+     *
      * Domain name mode access way does not support the delimiter(;), and only one domain name can be set.
      *
      * @param namesrvAddr name server address

@@ -96,9 +96,24 @@ public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> 
             '}';
     }
 
+    /**
+     * 失败条目（规避规则条目）
+     */
     class FaultItem implements Comparable<FaultItem> {
+
+        /**
+         * BrokerName
+         */
         private final String name;
+
+        /**
+         * 本次消息发送延迟
+         */
         private volatile long currentLatency;
+
+        /**
+         * 故障规避开始时间
+         */
         private volatile long startTimestamp;
 
         public FaultItem(final String name) {
@@ -130,6 +145,7 @@ public class LatencyFaultToleranceImpl implements LatencyFaultTolerance<String> 
             return 0;
         }
 
+        // 超过规避时间就算可用
         public boolean isAvailable() {
             return (System.currentTimeMillis() - startTimestamp) >= 0;
         }

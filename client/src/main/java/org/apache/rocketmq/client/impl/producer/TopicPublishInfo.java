@@ -24,10 +24,30 @@ import org.apache.rocketmq.common.protocol.route.QueueData;
 import org.apache.rocketmq.common.protocol.route.TopicRouteData;
 
 public class TopicPublishInfo {
+
+    /**
+     * 是否是顺序消息
+     */
     private boolean orderTopic = false;
+
+    /**
+     * 是否有Topic路由信息
+     */
     private boolean haveTopicRouterInfo = false;
+
+    /**
+     * 该主题下的消息队列
+     */
     private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
+
+    /**
+     * 每选择一次消息队列，该值会自增1。超过Inger.MAX_VALUE，则重置为0。
+     */
     private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
+
+    /**
+     * Topic路由信息
+     */
     private TopicRouteData topicRouteData;
 
     public boolean isOrderTopic() {
@@ -66,10 +86,19 @@ public class TopicPublishInfo {
         this.haveTopicRouterInfo = haveTopicRouterInfo;
     }
 
+    /**
+     * 选择一个消息队列
+     *
+     * @param lastBrokerName
+     * @return
+     */
     public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
         if (lastBrokerName == null) {
             return selectOneMessageQueue();
+
         } else {
+
+            // 取余递增获取消息队列，需要不等于lastBrokerName的队列
             int index = this.sendWhichQueue.getAndIncrement();
             for (int i = 0; i < this.messageQueueList.size(); i++) {
                 int pos = Math.abs(index++) % this.messageQueueList.size();
@@ -80,10 +109,17 @@ public class TopicPublishInfo {
                     return mq;
                 }
             }
+
+            // 兜底方案？
             return selectOneMessageQueue();
         }
     }
 
+    /**
+     * 轮训获得一个消息队列
+     *
+     * @return
+     */
     public MessageQueue selectOneMessageQueue() {
         int index = this.sendWhichQueue.getAndIncrement();
         int pos = Math.abs(index) % this.messageQueueList.size();
