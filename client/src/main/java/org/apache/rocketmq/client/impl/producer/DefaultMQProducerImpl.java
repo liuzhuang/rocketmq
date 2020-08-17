@@ -602,7 +602,9 @@ public class DefaultMQProducerImpl implements MQProducerInner {
                             break;
                         }
 
-                        // 发送消息  TODO，如果发送消息到broker，broker保存到磁盘，但是突然网络出现中断，那么同一个消息是否会被保存两次？
+                        // 发送消息
+                        // TODO 如果发送消息到broker，broker保存到磁盘，但是突然网络出现中断，那么同一个消息是否会被保存两次？
+                        // TODO 其实也没关系，既然保证不了消息只被消费一次，保证消息只保存一次似乎也没关系。最终要看消息是否被重复消费
                         sendResult = this.sendKernelImpl(msg, mq, communicationMode, sendCallback, topicPublishInfo, timeout - costTime);
                         endTimestamp = System.currentTimeMillis();
                         this.updateFaultItem(mq.getBrokerName(), endTimestamp - beginTimestampPrev, false);
