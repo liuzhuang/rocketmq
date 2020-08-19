@@ -22,7 +22,15 @@ public enum PutMessageStatus {
     FLUSH_SLAVE_TIMEOUT,
     SLAVE_NOT_AVAILABLE,
     SERVICE_NOT_AVAILABLE,
+
+    /**
+     * 创建CommitLog文件失败
+     */
     CREATE_MAPEDFILE_FAILED,
+
+    /**
+     * 消息格式不合法
+     */
     MESSAGE_ILLEGAL,
     PROPERTIES_SIZE_EXCEEDED,
     OS_PAGECACHE_BUSY,

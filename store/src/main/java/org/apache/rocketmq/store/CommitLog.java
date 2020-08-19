@@ -777,12 +777,18 @@ public class CommitLog {
 
     }
 
+    /**
+     * 写入消息
+     *
+     * @param msg
+     * @return
+     */
     public PutMessageResult putMessage(final MessageExtBrokerInner msg) {
         // Set the storage time
         msg.setStoreTimestamp(System.currentTimeMillis());
-        // Set the message body BODY CRC (consider the most appropriate setting
-        // on the client)
+        // Set the message body BODY CRC (consider the most appropriate setting on the client)
         msg.setBodyCRC(UtilAll.crc32(msg.getBody()));
+
         // Back to Results
         AppendMessageResult result = null;
 
@@ -794,7 +800,7 @@ public class CommitLog {
         final int tranType = MessageSysFlag.getTransactionValue(msg.getSysFlag());
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE
             || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
-            // Delay Delivery
+            // Delay Delivery 处理延迟消息（更改TOPIC，queueId，属性）
             if (msg.getDelayTimeLevel() > 0) {
                 if (msg.getDelayTimeLevel() > this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) {
                     msg.setDelayTimeLevel(this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel());
@@ -813,19 +819,25 @@ public class CommitLog {
             }
         }
 
+        // 检测是否是IPV6
         InetSocketAddress bornSocketAddress = (InetSocketAddress) msg.getBornHost();
         if (bornSocketAddress.getAddress() instanceof Inet6Address) {
             msg.setBornHostV6Flag();
         }
 
+        // 检测是否是IPV6
         InetSocketAddress storeSocketAddress = (InetSocketAddress) msg.getStoreHost();
         if (storeSocketAddress.getAddress() instanceof Inet6Address) {
             msg.setStoreHostAddressV6Flag();
         }
 
+        // 写入消息耗时
         long elapsedTimeInLock = 0;
 
+        // 写入文件报END_OF_FILE错时，表示已经写满的Commitlog文件
         MappedFile unlockMappedFile = null;
+
+        // 获取最新的commitLog文件
         MappedFile mappedFile = this.mappedFileQueue.getLastMappedFile();
 
         putMessageLock.lock(); //spin or ReentrantLock ,depending on store config
@@ -833,10 +845,10 @@ public class CommitLog {
             long beginLockTimestamp = this.defaultMessageStore.getSystemClock().now();
             this.beginTimeInLock = beginLockTimestamp;
 
-            // Here settings are stored timestamp, in order to ensure an orderly
-            // global
+            // Here settings are stored timestamp, in order to ensure an orderly global
             msg.setStoreTimestamp(beginLockTimestamp);
 
+            // 第一次创建commitLog文件
             if (null == mappedFile || mappedFile.isFull()) {
                 mappedFile = this.mappedFileQueue.getLastMappedFile(0); // Mark: NewFile may be cause noise
             }
@@ -846,11 +858,13 @@ public class CommitLog {
                 return new PutMessageResult(PutMessageStatus.CREATE_MAPEDFILE_FAILED, null);
             }
 
+            // 将消息追加写入文件
             result = mappedFile.appendMessage(msg, this.appendMessageCallback);
             switch (result.getStatus()) {
                 case PUT_OK:
                     break;
                 case END_OF_FILE:
+                    // 当前文件已写满，已写满文件赋值给unlockMappedFile，然后创建一个新文件，写入消息。
                     unlockMappedFile = mappedFile;
                     // Create a new file, re-write the message
                     mappedFile = this.mappedFileQueue.getLastMappedFile(0);
@@ -884,13 +898,14 @@ public class CommitLog {
             log.warn("[NOTIFYME]putMessage in lock cost time(ms)={}, bodyLength={} AppendMessageResult={}", elapsedTimeInLock, msg.getBody().length, result);
         }
 
+        // 什么意思？
         if (null != unlockMappedFile && this.defaultMessageStore.getMessageStoreConfig().isWarmMapedFileEnable()) {
             this.defaultMessageStore.unlockMappedFile(unlockMappedFile);
         }
 
         PutMessageResult putMessageResult = new PutMessageResult(PutMessageStatus.PUT_OK, result);
 
-        // Statistics
+        // Statistics 记录统计数据
         storeStatsService.getSinglePutMessageTopicTimesTotal(msg.getTopic()).incrementAndGet();
         storeStatsService.getSinglePutMessageTopicSizeTotal(topic).addAndGet(result.getWroteBytes());
 
@@ -946,9 +961,17 @@ public class CommitLog {
         return CompletableFuture.completedFuture(PutMessageStatus.PUT_OK);
     }
 
-
+    /**
+     * 刷盘
+     *
+     * TODO 如果刷盘失败，文件数据怎么处理？
+     *
+     * @param result
+     * @param putMessageResult
+     * @param messageExt
+     */
     public void handleDiskFlush(AppendMessageResult result, PutMessageResult putMessageResult, MessageExt messageExt) {
-        // Synchronization flush
+        // 同步刷盘 Synchronization flush
         if (FlushDiskType.SYNC_FLUSH == this.defaultMessageStore.getMessageStoreConfig().getFlushDiskType()) {
             final GroupCommitService service = (GroupCommitService) this.flushCommitLogService;
             if (messageExt.isWaitStoreMsgOK()) {
@@ -971,7 +994,7 @@ public class CommitLog {
                 service.wakeup();
             }
         }
-        // Asynchronous flush
+        // 异步刷盘 Asynchronous flush
         else {
             if (!this.defaultMessageStore.getMessageStoreConfig().isTransientStorePoolEnable()) {
                 flushCommitLogService.wakeup();

@@ -53,6 +53,8 @@ import org.apache.rocketmq.store.StoreStatsService;
 import org.apache.rocketmq.store.schedule.ScheduleMessageService;
 
 /**
+ * 多副本
+ *
  * Store all metadata downtime for recovery, data protection reliability
  */
 public class DLedgerCommitLog extends CommitLog {

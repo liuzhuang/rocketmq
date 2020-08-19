@@ -130,6 +130,12 @@ public class MessageStoreConfig {
     private long flushDelayOffsetInterval = 1000 * 10;
     @ImportantField
     private boolean cleanFileForciblyEnable = true;
+
+    /**
+     * 是否开启文件预热，在预热文件时会填充1个G的假值0作为占位符，提前分配物理内存，防止消息写入时发生缺页异常
+     *
+     * https://cloud.tencent.com/developer/article/1651318
+     */
     private boolean warmMapedFileEnable = false;
     private boolean offsetCheckInSlave = false;
     private boolean debugLockEnable = false;

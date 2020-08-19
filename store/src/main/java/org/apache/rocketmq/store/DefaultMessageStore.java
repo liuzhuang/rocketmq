@@ -509,16 +509,20 @@ public class DefaultMessageStore implements MessageStore {
      */
     @Override
     public PutMessageResult putMessage(MessageExtBrokerInner msg) {
+
+        // 检查Broker存储状态
         PutMessageStatus checkStoreStatus = this.checkStoreStatus();
         if (checkStoreStatus != PutMessageStatus.PUT_OK) {
             return new PutMessageResult(checkStoreStatus, null);
         }
 
+        // 检查消息格式
         PutMessageStatus msgCheckStatus = this.checkMessage(msg);
         if (msgCheckStatus == PutMessageStatus.MESSAGE_ILLEGAL) {
             return new PutMessageResult(msgCheckStatus, null);
         }
 
+        // 写入文件
         long beginTime = this.getSystemClock().now();
         PutMessageResult result = this.commitLog.putMessage(msg);
         long elapsedTime = this.getSystemClock().now() - beginTime;

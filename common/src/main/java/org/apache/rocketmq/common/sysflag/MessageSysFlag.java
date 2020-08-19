@@ -17,12 +17,40 @@
 package org.apache.rocketmq.common.sysflag;
 
 public class MessageSysFlag {
+
+    /**
+     * 压缩消息内容
+     */
     public final static int COMPRESSED_FLAG = 0x1;
+
+    /**
+     * 批量消息
+     */
     public final static int MULTI_TAGS_FLAG = 0x1 << 1;
+
+    /**
+     * 非事务消息
+     */
     public final static int TRANSACTION_NOT_TYPE = 0;
+
+    /**
+     * 事务消息PREPARED
+     */
     public final static int TRANSACTION_PREPARED_TYPE = 0x1 << 2;
+
+    /**
+     * 事务消息Commit
+     */
     public final static int TRANSACTION_COMMIT_TYPE = 0x2 << 2;
+
+    /**
+     * 事务消息Rollback
+     */
     public final static int TRANSACTION_ROLLBACK_TYPE = 0x3 << 2;
+
+    /**
+     * IPV6
+     */
     public final static int BORNHOST_V6_FLAG = 0x1 << 4;
     public final static int STOREHOSTADDRESS_V6_FLAG = 0x1 << 5;
 

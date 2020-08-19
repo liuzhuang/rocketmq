@@ -21,6 +21,10 @@ package org.apache.rocketmq.store;
  */
 public enum AppendMessageStatus {
     PUT_OK,
+
+    /**
+     * 当前文件已写满
+     */
     END_OF_FILE,
     MESSAGE_SIZE_EXCEEDED,
     PROPERTIES_SIZE_EXCEEDED,
