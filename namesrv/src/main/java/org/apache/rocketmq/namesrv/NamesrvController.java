@@ -108,6 +108,7 @@ public class NamesrvController {
 
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 NamesrvController.this.routeInfoManager.scanNotActiveBroker();
             }
         }, 5, 10, TimeUnit.SECONDS);
@@ -117,6 +118,7 @@ public class NamesrvController {
 
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 NamesrvController.this.kvConfigManager.printAllPeriodically();
             }
         }, 1, 10, TimeUnit.MINUTES);

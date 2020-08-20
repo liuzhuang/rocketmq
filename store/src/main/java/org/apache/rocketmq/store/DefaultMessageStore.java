@@ -1333,6 +1333,7 @@ public class DefaultMessageStore implements MessageStore {
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 DefaultMessageStore.this.cleanFilesPeriodically();
             }
         }, 1000 * 60, this.messageStoreConfig.getCleanResourceInterval(), TimeUnit.MILLISECONDS);
@@ -1340,6 +1341,7 @@ public class DefaultMessageStore implements MessageStore {
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 DefaultMessageStore.this.checkSelf();
             }
         }, 1, 10, TimeUnit.MINUTES);
@@ -1373,6 +1375,7 @@ public class DefaultMessageStore implements MessageStore {
         // }, 1, 1, TimeUnit.HOURS);
         this.diskCheckScheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 DefaultMessageStore.this.cleanCommitLogService.isSpaceFull();
             }
         }, 1000L, 10000L, TimeUnit.MILLISECONDS);

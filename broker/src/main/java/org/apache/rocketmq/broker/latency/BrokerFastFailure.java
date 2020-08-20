@@ -55,6 +55,7 @@ public class BrokerFastFailure {
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 if (brokerController.getBrokerConfig().isBrokerFastFailureEnable()) {
                     cleanExpiredRequest();
                 }

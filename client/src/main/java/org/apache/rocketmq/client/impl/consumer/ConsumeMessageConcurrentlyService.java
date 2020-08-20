@@ -87,6 +87,7 @@ public class ConsumeMessageConcurrentlyService implements ConsumeMessageService 
 
             @Override
             public void run() {
+                // TODO 没有try catch，会造成不定时执行
                 cleanExpireMsg();
             }
 
