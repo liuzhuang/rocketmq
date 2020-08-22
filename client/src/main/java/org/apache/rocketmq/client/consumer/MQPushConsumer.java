@@ -55,6 +55,8 @@ public interface MQPushConsumer extends MQConsumer {
     void subscribe(final String topic, final String subExpression) throws MQClientException;
 
     /**
+     * filterServer已被移除，请使用MessageSelector代替。
+     *
      * This method will be removed in the version 5.0.0,because filterServer was removed,and method <code>subscribe(final String topic, final MessageSelector messageSelector)</code>
      * is recommended.
      *

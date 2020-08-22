@@ -17,10 +17,33 @@
 
 package org.apache.rocketmq.filter.constant;
 
+/**
+ * 一元操作符号
+ */
 public enum UnaryType {
+
+    /**
+     * !
+     */
     NEGATE,
+
+    /**
+     * in
+     */
     IN,
+
+    /**
+     * not
+     */
     NOT,
+
+    /**
+     * Boolean类型
+     */
     BOOLEANCAST,
+
+    /**
+     * Like
+     */
     LIKE
 }

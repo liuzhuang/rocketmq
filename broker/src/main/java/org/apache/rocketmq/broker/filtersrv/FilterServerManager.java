@@ -52,6 +52,8 @@ public class FilterServerManager {
 
     public void start() {
 
+        // 每30秒轮训一次，为了避免Filter Server异常退出。创建Filter Server。
+        // 为什么Filter Server会异常退出？参见FilterServerManager.scanNotActiveChannel，每隔30秒,会关闭不活跃的连接。
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -64,6 +66,9 @@ public class FilterServerManager {
         }, 1000 * 5, 1000 * 30, TimeUnit.MILLISECONDS);
     }
 
+    /**
+     * 创建Filter Server，个数：brokerConfig.filterServerNums
+     */
     public void createFilterServer() {
         int more =
             this.brokerController.getBrokerConfig().getFilterServerNums() - this.filterServerTable.size();
@@ -73,6 +78,11 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * Filter Server 启动shell。
+     *
+     * @return
+     */
     private String buildStartCommand() {
         String config = "";
         if (BrokerStartup.configFile != null) {
@@ -98,6 +108,12 @@ public class FilterServerManager {
         this.scheduledExecutorService.shutdown();
     }
 
+    /**
+     * 调用方：AdminBrokerProcessor
+     *
+     * @param channel
+     * @param filterServerAddr
+     */
     public void registerFilterServer(final Channel channel, final String filterServerAddr) {
         FilterServerInfo filterServerInfo = this.filterServerTable.get(channel);
         if (filterServerInfo != null) {
@@ -111,6 +127,11 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * 调用方：ClientHousekeepingService
+     *
+     * 扫描不活跃的链接。根据最近活跃时间判断，大于FILTER_SERVER_MAX_IDLE_TIME_MILLS30秒,的移除table，并且关闭连接。
+     */
     public void scanNotActiveChannel() {
 
         Iterator<Entry<Channel, FilterServerInfo>> it = this.filterServerTable.entrySet().iterator();
@@ -126,6 +147,14 @@ public class FilterServerManager {
         }
     }
 
+    /**
+     * 调用方：ClientHousekeepingService。onChannelClose、onChannelException、onChannelIdle
+     *
+     * channel关闭回调
+     *
+     * @param remoteAddr
+     * @param channel
+     */
     public void doChannelCloseEvent(final String remoteAddr, final Channel channel) {
         FilterServerInfo old = this.filterServerTable.remove(channel);
         if (old != null) {
@@ -144,6 +173,9 @@ public class FilterServerManager {
         return addr;
     }
 
+    /**
+     * Filter Server 信息
+     */
     static class FilterServerInfo {
         private String filterServerAddr;
         private long lastUpdateTimestamp;
